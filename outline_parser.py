@@ -2,11 +2,11 @@
 
 import re, argparse
 from subprocess import call
-from os import getcwd, path
+from os import getcwd, path, remove
 from numpy.random import rand
 
 def from_gdoc(file):
-    chunked_name = file.strip(".txt")+"_chunked.txt"
+    chunked_name = path.splitext(file)[0]+".org"
     lines = []
     with open(file) as outline:
         for line in outline:
@@ -40,8 +40,11 @@ def from_gdoc(file):
             l3.append(line)
         elif p4.match(line):
             l4.append(line)
-            if not p5.match(lines[lines.index(line)+1]):
-                cards.append((l1[-1], l2[-1], l3[-1], l4[-1]))
+            try:
+                if not p5.match(lines[lines.index(line)+1]):
+                    cards.append((l1[-1], l2[-1], l3[-1], l4[-1]))
+            except:
+                continue
         elif p5.match(line):
             l5.append(line)
             try:
@@ -73,13 +76,9 @@ def from_gdoc(file):
 def from_org(file):
     pass
 
-def to_html(file):
-    out_file = file.replace(".txt", ".html")
-    call(["pandoc", "-f", "org", "-t", "html", file, "-o", out_file])
-
 def html_to_anki(file):
 
-    html_file = file.replace(".txt", ".html")
+    html_file = path.splitext(file)[0]+".html"
     call(["pandoc", "-f", "org", "-t", "html", file, "-o", html_file])
 
     replace_id = re.compile('<h1 id.*"')
@@ -103,17 +102,19 @@ def html_to_anki(file):
             previous_line = lines[i-1]
             lines[i-1] = previous_line + '"'
 
-    out_file = html_file.replace(".html", ".csv")
-    with open (out_file, "a") as out_file:
+    out_file = path.splitext(html_file)[0]+".csv"
+    with open (out_file, "a") as csv:
         card = []
         for line in lines:
             end = re.compile('.*>"$')
             card.append(line)
             if end.match(line):
-                out_file.write("".join(card))
-                out_file.write("\n")
+                csv.write("".join(card))
+                csv.write("\n")
                 del card[:]
                 continue
+
+    remove(html_file)
 
 def main():
     ap = argparse.ArgumentParser(description = "Turn your outlines in more manageable chunks of information.")
