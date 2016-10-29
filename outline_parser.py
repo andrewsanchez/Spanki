@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re, argparse
 from subprocess import call
@@ -7,11 +7,18 @@ from numpy.random import rand
 
 def from_gdoc(file):
     chunked_name = path.splitext(file)[0]+".org"
+
+    # lines = []
+    # with open(file, encoding="utf-8") as outline:
+    #     for line in outline:
+    #         lines.append(line)
+    #     # lines = outline.readlines()
+
     lines = []
     with open(file) as outline:
         for line in outline:
             line = line.encode("ascii", "ignore")
-            lines.append(line.decode("ascii"))
+            lines.append(line.decode("ascii", "ignore"))
 
     p1 = re.compile("^\* ")
     p2 = re.compile("^ {3}\* ")
@@ -63,15 +70,27 @@ def from_gdoc(file):
             l7.append(line)
             cards.append((l1[-1], l2[-1], l3[-1], l4[-1], l5[-1], l6[-1], l7[-1]))
 
-    with open(chunked_name, "a") as chunked:
-        for card in cards:
-            flashcard = []
-            for i in card[0:3]:
-                flashcard.append(i.strip())
-            for x in card[3:]:
-                flashcard.append(x)
-            chunked.write(" ".join(flashcard[0:3]) + "\n")
-            chunked.write("".join(flashcard[3:]))
+
+    for card in cards:
+        flashcard = []
+        for i in card[0:3]:
+            flashcard.append(i.strip())
+        for x in card[3:]:
+            flashcard.append(x)
+        print(" ".join(flashcard[0:3]) + "\n")
+        print("".join(flashcard[3:]))
+
+    # with open(chunked_name, "a") as chunked:
+    #     for card in cards:
+    #         flashcard = []
+    #         for i in card[0:3]:
+    #             flashcard.append(i.strip())
+    #         for x in card[3:]:
+    #             flashcard.append(x)
+    #         chunked.write(" ".join(flashcard[0:3]) + "\n")
+    #         chunked.write("".join(flashcard[3:]))
+            # chunked.write(" ".join(flashcard[0:3]) + "\n")
+            # chunked.write("".join(flashcard[3:]))
 
 def from_org(file):
     pass

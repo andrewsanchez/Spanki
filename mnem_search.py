@@ -4,50 +4,133 @@ import string, re, itertools
 import pandas as pd
 from collections import Counter
 from nltk.corpus import wordnet as wn
+from nltk.corpus import names
 
-ls = [["sz",
-       "td",
-       "nm",
-       "ck",
-       "rl",
-       "fv",
-       "hj",
-       "gq",
-       "wx" ]]
+def replacements():
 
-ls = ls[0]
+    andrews_pairs = ["sz",
+                    "td",
+                    "nm",
+                    "ck",
+                    "rl",
+                    "fv",
+                    "hj",
+                    "gq",
+                    "wx",
+                    "pb",]
 
-ns = [str(n) for n in range(0,10)]
+    major_pairs = ["sz",
+                "td",
+                "n",
+                "m",
+                "r",
+                "l",
+                "cjgsz",
+                "kgq",
+                "fv",
+                "pb" ]
 
-replacements = list(zip(ls,ns))
-replacements = tuple(replacements)
-filename = "".join(ls)+".csv"
+    fourteen_pairs = ["b",
+                    "c",
+                    "s",
+                    "fv",
+                    "nm",
+                    "pq",
+                    "k",
+                    "rl",
+                    "td",
+                    "gj",]
 
-with open(filename, "w") as out:
-    out.write("".join(ls) + "\n")
-    out.close()
+    one_through_ten = [str(n) for n in range(0,10)]
 
-nums_from_words = []
+    for pairing in [andrews_pairs]:
+        replacements = list(zip(pairing, one_through_ten))
+        replacements = tuple(replacements)
 
-for synset in list(wn.all_synsets('n')):
-    word = synset.name().split(".")[0]
-    word = word.lower()
-    word = re.sub("[aeiou\W]", "", word)
-    word = re.sub(r'([a-z])\1+', r'\1', word)
-    number = []
+    return replacements
 
-    for letter in word:
-        for lset, num in replacements:
-            if letter in lset:
-                number.append(num)
+def get_names(replacements):
 
-    if len(number) <= 3:
-        number = "".join(number)
-        nums_from_words.append(number)
+    complete_words = []
+    reduced_words = []
+    number_equivalents = []
+    for name in names.words():
+        word = synset.name().split(".")[0].lower()
+        reduced_word = re.sub("[aeiouy\W]", "", word)
+        reduced_word = re.sub(r'([a-z])\1+', r'\1', reduced_word)
+        numbers = []
+        for letter in reduced_word:
+            for pair, n in replacements:
+                if letter in pair:
+                    numbers.append(n)
+        number = str("".join(numbers))
+        complete_words.append(word)
+        reduced_words.append(reduced_word)
+        number_equivalents.append(number)
+    data = list(zip(complete_words, number_equivalents))
+    names_df = pd.DataFrame(data=data, index=reduced_words, columns=["Word", "Number"])
+    names_df = df.sort_index()
+    names_df.to_csv("names.csv", sep="\t")
+    return names_df
 
-nums_from_words = Counter(nums_from_words)
+def get_words(replacements):
+    complete_words = []
+    reduced_words = []
+    number_equivalents = []
 
-columns=["matches"]
-df = pd.DataFrame.from_dict(nums_from_words, orient="index")
-df = df.sort_index()
-df.to_csv(filename, mode="a")
+    for synset in list(wn.all_synsets('n')):
+        word = synset.name().split(".")[0].lower()
+        reduced_word = re.sub("[aeiouy\W]", "", word)
+        reduced_word = re.sub(r'([a-z])\1+', r'\1', reduced_word)
+        numbers = []
+        for letter in reduced_word:
+            for pair, n in replacements:
+                if letter in pair:
+                    numbers.append(n)
+        number = str("".join(numbers))
+
+        complete_words.append(word)
+        reduced_words.append(reduced_word)
+        number_equivalents.append(number)
+
+    data = list(zip(complete_words, number_equivalents))
+    words_df = pd.DataFrame(data=data, index=reduced_words, columns=["Word", "Number"])
+    words_df = df.sort_index()
+    words_df.to_csv("words.csv", sep="\t")
+    return words_df
+
+def get_verbs(replacements):
+    complete_words = []
+    reduced_words = []
+    number_equivalents = []
+
+    for synset in list(wn.all_synsets('v')):
+        word = synset.name().split(".")[0].lower()
+        reduced_word = re.sub("[aeiouy\W]", "", word)
+        reduced_word = re.sub(r'([a-z])\1+', r'\1', reduced_word)
+        numbers = []
+        for letter in reduced_word:
+            for pair, n in replacements:
+                if letter in pair:
+                    numbers.append(n)
+        number = str("".join(numbers))
+        complete_words.append(word)
+        reduced_words.append(reduced_word)
+        number_equivalents.append(number)
+
+    data = list(zip(complete_words, number_equivalents))
+    verbs_df = pd.DataFrame(data=data, index=reduced_words, columns=["Word", "Number"])
+    verbs_df = df.sort_index()
+    verbs_df.to_csv("verbs.csv", sep="\t")
+
+    return verbs_df
+    pass
+
+def main():
+    replacements = replacements()
+    names_df = get_names(replacements)
+    words_df = get_words(replacements)
+    verbs_df = get_verbs(replacements)
+    all_df = pd.concat([words_df, names_df, verbs_df])
+
+main()
