@@ -72,10 +72,7 @@ def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
         actions = sorted(set(verbs.loc[pair, "Words"].split(",")))
         actions_and_nums = zip(range(0,len(actions)), actions)
         for item in actions_and_nums:
-            if int(item[0]) % 6 != 0 or item[0] == 0:
-                print("{}-{}".format(item[0], item[1]), end=", ")
-            else:
-                print("{}-{}".format(item[0], item[1]))
+            print("{}-{}".format(item[0], item[1]))
         print("\n")
         choice = int(input("Enter the number that corresponds to the desired action:  "))
         mnem = actions[choice]
@@ -89,10 +86,7 @@ def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
         objects = sorted(set(nouns.loc[pair, "Words"].split(",")))
         objects_and_nums = zip(range(0,len(objects)), objects)
         for item in objects_and_nums:
-            if int(item[0]) % 6 != 0 or item[0] == 0:
-                print("{}-{}".format(item[0], item[1]), end=", ")
-            else:
-                print("{}-{}".format(item[0], item[1]))
+            print("{}-{}".format(item[0], item[1]))
         print("\n")
         choice = int(input("Enter the number that corresponds to the desired object:  "))
         mnem = objects[choice]
@@ -116,8 +110,10 @@ def split_words(word):
 
 def mnem_search(in_file, names, nouns, verbs, record):
 
-    out_name = re.sub(".txt", "_mnemonics.txt", in_file)
+    out_name = in_file.split("/")[-1]
+    out_name = re.sub(".txt", "_mnemonics.txt", out_name)
     out_name = "/Users/andrew/Projects/Spanki/resources/{}".format(out_name)
+    print(out_name)
     mnem_df = pd.DataFrame(columns=["Mnemonic"])
     with open(in_file) as f:
         for line in f:
@@ -128,8 +124,9 @@ def mnem_search(in_file, names, nouns, verbs, record):
             mnem_list=[]
             for word in word_bones:
                 pairs = wrap(word, 2)
-                print("Letter pairs:  {}".format(", ".join(pairs)), end="\n\n")
+                print("Letter pairs:  {}".format(", ".join(pairs)), end="\n")
                 for pair in pairs:
+                    print("Mnemonics for '{}':".format(pair), end="\n\n")
                     if pairs.index(pair) == 0:
                         person = choose_mnem("Person", pair, names, nouns, verbs, record, mnem_list)
                     elif pairs.index(pair) == 1:
@@ -147,7 +144,7 @@ def mnem_search(in_file, names, nouns, verbs, record):
                 print("\n")
             mnemonics = ", ".join([i[1] for i in mnem_list])
             mnem_df.loc[" ".join(words)] = mnemonics
-        mnem_df.to_csv(out_name)
+            mnem_df.to_csv(out_name)
         print(mnem_df, end="\n\n")
                 
 def main():
