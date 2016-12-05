@@ -5,7 +5,6 @@ import re
 import argparse
 import pandas as pd
 from time import sleep
-from numpy import float64
 from textwrap import wrap
 from itertools import permutations
 from string import ascii_lowercase
@@ -26,7 +25,6 @@ def reduce_word(word):
 
 def record_mnemonic(record, pair, PAO, mnem):
 
-
     current_mnems = record.loc[pair, PAO]
     try:
         current_mnems = current_mnems.split(",")
@@ -34,14 +32,6 @@ def record_mnemonic(record, pair, PAO, mnem):
             record.loc[pair, PAO] = ",".join([record.loc[pair, PAO],mnem])
     except AttributeError:
         record.loc[pair, PAO] = mnem
-
-   #current_mnems = record.loc[pair, PAO]
-   #if type(current_mnems) == float64:
-   #    record.loc[pair, PAO] = mnem
-   #else:
-   #    current_mnems = current_mnems.split(",")
-   #    if mnem not in current_mnems:
-   #        record.loc[pair, PAO] = ",".join([record.loc[pair, PAO],mnem])
 
     record.to_csv("/Users/andrew/Projects/Spanki/resources/record.csv")
 
@@ -54,21 +44,21 @@ def instantiate_record(path="/Users/andrew/Projects/Spanki/resources/record.csv"
 
     return record
 
-def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
+def instantiate_mnem_df(f):
 
-    #TODO Add ability to back up if you chose wrong mnemonic
-    #TODO What to do if there are not any matches?
-    #TODO Give option for modifying and/or annotating the mnemonic word for clarity
-    #TODO Remove "h" from list of consonants?
+    mnem_index = list(f)
+    mnem_df = pd.DataFrame(index=mnem_index, columns=["Mnemonic"])
+
+    return mnem_df
+            
+
+def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
 
     if PAO == "Person":
         people = sorted(set(list(names.index[names["initials"] == pair])))
         people_and_nums = zip(range(0,len(people)), people)
         for item in people_and_nums:
-            if int(item[0]) % 6 != 0 or item[0] == 0:
-                print("{}-{}".format(item[0], item[1]), end=", ")
-            else:
-                print("{}-{}".format(item[0], item[1]))
+            print("{}-{}".format(item[0], item[1]))
         print("\n")
         choice = int(input("Enter the number that corresponds to the desired person:  "))
         mnem = people[choice]
@@ -115,6 +105,7 @@ def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
 
 def split_words(word):
 
+    word = word
     if " " in word:
         words = word.split(" ")
     elif "," in word:
@@ -125,36 +116,39 @@ def split_words(word):
 
 def mnem_search(in_file, names, nouns, verbs, record):
 
+    out_name = re.sub(".txt", "_mnemonics.txt", in_file)
+    out_name = "/Users/andrew/Projects/Spanki/resources/{}".format(out_name)
+    mnem_df = pd.DataFrame(columns=["Mnemonic"])
     with open(in_file) as f:
         for line in f:
-            words = split_words(line)
+            words = split_words(line.strip())
             word_bones = []
-            for word in words:
-                reduced = reduce_word(word)
-                word_bones.append(reduced)
-            print("{} -> {}".format(line, [i for i in word_bones]))
-
+            word_bones = [reduce_word(word) for word in words]
+            print("{} -> {}".format(line.strip(), "".join(word_bones)))
             mnem_list=[]
             for word in word_bones:
                 pairs = wrap(word, 2)
-                print("Letter pairs:  {}".format(pairs))
-
+                print("Letter pairs:  {}".format(", ".join(pairs)), end="\n\n")
                 for pair in pairs:
                     if pairs.index(pair) == 0:
                         person = choose_mnem("Person", pair, names, nouns, verbs, record, mnem_list)
                     elif pairs.index(pair) == 1:
-                        print("************************************")
+                        print("*"*80)
                         action = choose_mnem("Action", pair, names, nouns, verbs, record, mnem_list)
                     elif pairs.index(pair) == 2:
-                        print("************************************")
+                        print("*"*80)
                         object = choose_mnem("Object", pair, names, nouns, verbs, record, mnem_list)
                     elif pairs.index(pair) > 2:
-                        print("************************************")
+                        print("*"*80)
                         object = choose_mnem("Object", pair, names, nouns, verbs, record, mnem_list)
                 print("Mnemonic for {} ({})".format(line.strip(), " ".join([i for i in word_bones])))
                 for mnem in mnem_list:
                     print("{} -> {}".format(mnem[0], mnem[1]))
                 print("\n")
+            mnemonics = ", ".join([i[1] for i in mnem_list])
+            mnem_df.loc[" ".join(words)] = mnemonics
+        mnem_df.to_csv(out_name)
+        print(mnem_df, end="\n\n")
                 
 def main():
 
