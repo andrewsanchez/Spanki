@@ -1,0 +1,5 @@
+,Mnemonic
+Medulla,"miles davis, hail"
+Cortex,"chris rock, taxi"
+Nephron,"natalie portman, iron"
+Glomerulus,"george lucas, marry, lasso"
