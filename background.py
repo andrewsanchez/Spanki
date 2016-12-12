@@ -60,3 +60,13 @@ def record_mnemonic(record, pair, PAO, mnem):
         record.loc[pair, PAO] = mnem
 
     record.to_csv("/Users/andrew/Projects/Spanki/resources/record.csv")
+
+def instantantiate_dfs(in_file):
+
+    names = pd.read_csv("/Users/andrew/Projects/Spanki/resources/names.csv", index_col=0)
+    verbs = pd.read_csv("/Users/andrew/Projects/Spanki/resources/verbs.csv", index_col=0)
+    nouns = pd.read_csv("/Users/andrew/Projects/Spanki/resources/nouns.csv", index_col=0)
+    record = instantiate_record()
+    mnem_df = instantiate_mnem_df(in_file)
+
+    return names, verbs, nouns, record, mnem_df
