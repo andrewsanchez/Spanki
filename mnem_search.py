@@ -42,8 +42,7 @@ def get_word_bones(line):
     #words = split_words(line.strip())
     word_bones = reduce_word(line.strip())
     pairs = wrap(word_bones, 2)
-    print(word_bones)
-    print("{} -> {}".format(line.strip(), pairs))
+    print("{} -> {}".format(line.strip(), pairs), end='\n\n')
 
     return pairs
 
@@ -53,7 +52,8 @@ def choose_PAO(df, mnems, PAO, pair, mnem_list, record):
     mnems_and_nums = zip(range(0,len(mnems)), mnems)
     for item in mnems_and_nums:
         print("{}-{}".format(item[0], item[1]))
-    choice = int(input("Enter the number that corresponds to the desired person:  "))
+    print('')
+    choice = int(input("Enter the number that corresponds to the desired mnemonic:  "))
     mnem = mnems[choice]
     mnem_list.append((pair, mnem))
     record_mnemonic(record, pair, PAO, mnem)
@@ -84,6 +84,17 @@ def choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list):
         mnem = choose_PAO(df, mnems, PAO, pair, mnem_list, record)
         return mnem
 
+def check_PAO(pair, pairs):
+
+    if pairs.index(pair) == 0:
+        PAO = 'Person'
+    elif pairs.index(pair) == 1:
+        PAO = 'Action'
+    elif pairs.index(pair) >= 2:
+        PAO = 'Object'
+
+    return PAO
+
 def mnem_search(in_file, names, nouns, verbs, record, mnem_df):
 
     mnem_df_path = get_out_file(in_file)
@@ -93,20 +104,13 @@ def mnem_search(in_file, names, nouns, verbs, record, mnem_df):
             pairs = get_word_bones(line)
             mnem_list=[]
             for pair in pairs:
-                if pairs.index(pair) == 0:
-                    person = choose_mnem("Person", pair, names, nouns, verbs, record, mnem_list)
-                    update_mnem_df(mnem_df, mnem_df_path, person, 'Person', word)
-                elif pairs.index(pair) == 1:
-                    action = choose_mnem("Action", pair, names, nouns, verbs, record, mnem_list)
-                    update_mnem_df(mnem_df, mnem_df_path, action, 'Action', word)
-                elif pairs.index(pair) == 2:
-                    object = choose_mnem("Object", pair, names, nouns, verbs, record, mnem_list)
-                    update_mnem_df(mnem_df, mnem_df_path, object, 'Objects', word)
-                elif pairs.index(pair) > 2:
-                    object = choose_mnem("Object", pair, names, nouns, verbs, record, mnem_list)
-                    update_mnem_df(mnem_df, mnem_df_path, object, 'Objects', word)
-            print("Mnemonic for:".format(line.strip()))
-            print(mnem_df.loc[line.strip()])
+                PAO = check_PAO(pair, pairs)
+                mnem = choose_mnem(PAO, pair, names, nouns, verbs, record, mnem_list)
+                update_mnem_df(mnem_df, mnem_df_path, mnem, PAO, word)
+            
+            print("Mnemonic for {}:".format(line.strip()))
+            print(mnem_df.loc[line.strip()], end='\n\n')
+
         print(mnem_df, end="\n\n")
                 
 def main():
@@ -121,6 +125,7 @@ def main():
     verbs = pd.read_csv("/Users/andrew/Projects/Spanki/resources/verbs.csv", index_col=0)
     nouns = pd.read_csv("/Users/andrew/Projects/Spanki/resources/nouns.csv", index_col=0)
 
+    print('*'*80, '\n\n')
     mnem_search(args.in_file, names, nouns, verbs, record, mnem_df)
 
 main()

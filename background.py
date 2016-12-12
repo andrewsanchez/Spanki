@@ -28,14 +28,17 @@ def instantiate_mnem_df(in_file):
     except OSError:
         # make sure open and listening the file here doesn't fuck up open the file later
         # maybe change columns here to p, a, o
-        mnem_df = pd.DataFrame(index=list(open(in_file)), columns=["Person", "Action", "Objects"])
+        ix = [i.strip() for i in list(open(in_file))]
+        mnem_df = pd.DataFrame(index=ix, columns=["Person", "Action", "Object"])
 
     return mnem_df
 
 def update_mnem_df(mnem_df, mnem_df_path, mnem, PAO, word):
     
-    if PAO == 'Objects':
+    if PAO == 'Object':
         try:
+            print(word)
+            print(PAO)
             current_mnems = mnem_df.loc[word, PAO]
             if mnem not in current_mnems:
                 mnem_df.loc[word, PAO] = ','.join([mnem_df.loc[word, PAO], mnem])
